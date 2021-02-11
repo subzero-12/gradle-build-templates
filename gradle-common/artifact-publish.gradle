@@ -1,0 +1,33 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+publishing {
+    repositories {
+        maven {
+            if (project.version.endsWith('-SNAPSHOT')) {
+                url "s3://maven.<org>.com/snapshots"
+            } else {
+                url "s3://maven.<org>.com/releases"
+            }
+            credentials(AwsCredentials) {
+                accessKey "${System.getenv('AWS_ACCESS_KEY_ID')}"
+                secretKey "${System.getenv('AWS_SECRET_ACCESS_KEY')}"
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+}

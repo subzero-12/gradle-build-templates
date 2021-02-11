@@ -1,0 +1,14 @@
+apply from: 'https://raw.githubusercontent.com/subzero-12/gradle-build-templates/master/gradle-common/git-common-functions.gradle'
+
+// Master Based Development
+task getNextTag {
+    doLast {
+        println getNextTag()
+    }
+}
+
+task prepNextRelease {
+    doLast {
+        updateToNextVersion()
+    }
+}

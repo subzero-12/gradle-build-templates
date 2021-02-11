@@ -1,0 +1,79 @@
+def getRevision() {
+    def revisionName = System.properties['revisionName']
+    if(revisionName == null) {
+        revisionName = runCommands("git", "rev-parse", "HEAD").trim()
+    }
+    return revisionName
+}
+
+def getBranch() {
+    def branchName = System.properties['branchName']
+    if(branchName == null) {
+        branchName = runCommands("git", "rev-parse", "--abbrev-ref", "HEAD").trim()
+    }
+    return branchName
+}
+
+// Used for Trunk/master based development when using SNAPSHOT versions
+def getNextTag() {
+    if(isReleaseBuild()) {
+        return getVersion()
+    } else {
+        def tags = runCommands("git", "tag", "-l", "--sort=-version:refname", getBaseVersion() + "*").trim()
+        tags = tags.replaceAll(getBaseVersion() + "-rc", "")
+
+        def tagsList
+        if(tags.indexOf("\n") != -1 || tags.contains("1")) {
+            tagsList = tags.split("\n").collect {it as int}
+        } else {
+            tagsList = Arrays.asList()
+        }
+
+        int max
+        if(tagsList.size() == 0) {
+            max = 0
+        } else {
+            max = tagsList.max() as int
+        }
+
+        def nextTagVersion = ++max
+        return sprintf('%1$s%2$s%3$s', [getBaseVersion(), "-rc", nextTagVersion])
+    }
+}
+
+def updateToNextVersion() {
+    // Only need to bump versions on full releases
+
+    if (isReleaseBuild()) {
+        def propertiesFile = "gradle.properties"
+
+        def versionParts = getVersion().tokenize('.')
+        versionParts[1] = ++versionParts[1]
+        versionParts[2] = '0'
+        def nextVersion = sprintf('%1$s.%2$s.%3$s-SNAPSHOT', versionParts)
+
+        ant.propertyfile(file: propertiesFile) {
+            entry( key: "version", value: nextVersion)
+        }
+
+        runCommands("git", "add", propertiesFile)
+        runCommands("git", "commit", "-m", "Increment version for next release [skip ci]")
+        runCommands("git", "push")
+    }
+}
+
+private String runCommands(String... commands) {
+    def process = new ProcessBuilder(commands).redirectErrorStream(true).start()
+    process.waitFor()
+
+    def result = ''
+    process.inputStream.eachLine { result += it + '\n' }
+    return result
+}
+
+ext {
+    getRevision = this.&getRevision
+    getBranch = this.&getBranch
+    getNextTag = this.&getNextTag
+    updateToNextVersion = this.&updateToNextVersion
+}

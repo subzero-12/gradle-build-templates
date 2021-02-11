@@ -1,0 +1,77 @@
+def check_style_version = project.properties['checkStyleVersion'] ?: "8.17"
+def pmd_version = project.properties['pmdVersion'] ?: "6.21.0"
+def jacoco_version = project.properties['jacocoVersion'] ?: "0.8.6"
+def code_quality_resources = project.properties['codeQualityResources'] ?: "https://raw.githubusercontent.com/subzero-12/gradle-build-templates/master/gradle-common/resources/code-quality"
+//local testing
+//def code_quality_resources = project.properties['codeQualityResources'] ?: "../../gradle-common/resources/code-quality"
+
+buildscript {
+    def spotbugs_plugin_version = project.properties['spotbugsPluginVersion'] ?: "1.6.9"
+
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:${spotbugs_plugin_version}"
+    }
+}
+
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+apply plugin: 'jacoco'
+
+// CheckStyle Configuration
+checkstyle {
+    ignoreFailures = false
+    config = resources.text.fromUri("${code_quality_resources}/checkstyle.xml")
+    toolVersion = "${check_style_version}"
+    sourceSets = [ project.sourceSets.main ]
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        html.stylesheet resources.text.fromUri("${code_quality_resources}/checkstyle.xsl")
+    }
+}
+
+
+// PMD Configuration
+pmd {
+    ignoreFailures = true
+    toolVersion = "${pmd_version}"
+    sourceSets = [ project.sourceSets.main ]
+}
+
+
+// Jacoco Configuration
+jacoco {
+    toolVersion = "${jacoco_version}"
+    reportsDir = file("$buildDir/reports/jacoco")
+}
+
+jacocoTestReport {
+    executionData(file("${project.buildDir}/jacoco/test.exec"),
+            file("${project.buildDir}/jacoco/integrationTest.exec"))
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+task verifyCoverage {
+    dependsOn jacocoTestReport
+    dependsOn jacocoTestCoverageVerification
+}

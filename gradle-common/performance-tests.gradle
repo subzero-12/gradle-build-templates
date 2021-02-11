@@ -1,0 +1,46 @@
+def performanceTest_source_root = project.properties['performanceTestSourceRoot'] ?: "src/perf-test"
+def scala_version = project.properties['scalaVersion'] ?: "2.13.1"
+def gatling_version = project.properties['gatlingVersion'] ?: "3.3.1"
+
+apply plugin: 'scala'
+
+sourceSets {
+    perfTest {
+        scala {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs = ["${performanceTest_source_root}/scala"]
+        }
+        resources {
+            srcDirs = ["${performanceTest_source_root}/resources"]
+        }
+    }
+}
+
+configurations {
+    perfTestImplementation.extendsFrom testImplementation
+    perfTestRuntime.extendsFrom testRuntime
+    implementation.exclude group: 'ch.qos.logback'
+}
+
+task perfTest(type: JavaExec) {
+    dependsOn compilePerfTestScala
+    description = 'load test with Gatling'
+    group = 'Load Test'
+    main = 'io.gatling.app.Gatling'
+    classpath = sourceSets.perfTest.output + sourceSets.perfTest.runtimeClasspath
+    args = ["-s", "performance.simulations.BasicSimulation",  //simulation class
+            "-rf", "$buildDir/reports/gatling"                //place to put the report
+    ]
+}
+
+dependencies {
+    perfTestImplementation group: 'org.scala-lang',        name: 'scala-compiler',            version: "${scala_version}"
+    perfTestImplementation group: 'org.scala-lang',        name: 'scala-library',             version: "${scala_version}"
+    perfTestImplementation group: 'io.gatling',            name: 'gatling-app',               version: "${gatling_version}"
+    perfTestImplementation group: 'io.gatling',            name: 'gatling-core',              version: "${gatling_version}"
+    perfTestImplementation group: 'io.gatling',            name: 'gatling-recorder',          version: "${gatling_version}"
+    perfTestImplementation group: 'io.gatling',            name: 'gatling-commons',           version: "${gatling_version}"
+    perfTestImplementation group: 'io.gatling.highcharts', name: 'gatling-charts-highcharts', version: "${gatling_version}"
+    
+}

@@ -1,0 +1,39 @@
+def gradle_templates_source = project.properties['gradleTemplatesSource'] ?: "https://raw.githubusercontent.com/subzero-12/gradle-build-templates/master/gradle-common"
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+apply plugin: 'java-library'
+apply plugin: 'io.freefair.lombok'
+apply plugin: 'org.sonarqube'
+
+apply from: "${gradle_templates_source}/common-utils-tasks.gradle"
+apply from: "${gradle_templates_source}/git-common-functions.gradle"
+apply from: "${gradle_templates_source}/git-semantic-release.gradle"
+apply from: "${gradle_templates_source}/java-code-quality.gradle"
+apply from: "${gradle_templates_source}/integration-tests.gradle"
+apply from: "${gradle_templates_source}/performance-tests.gradle"
+apply from: "${gradle_templates_source}/artifact-publish.gradle"
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+jar {
+    enabled = true
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Application-Description': project.description,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date().format("EEE MMM dd HH:mm:ss zzz yyyy "),
+                'Built-JDK': System.getProperty('java.version'),
+                'Created-By': 'Gradle',
+                'Git-Commit': getRevision(),
+                'Git-Branch': getBranch(),
+                'Source-Compatibility': sourceCompatibility,
+                'Target-Compatibility': targetCompatibility
+    }
+}

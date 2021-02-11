@@ -1,0 +1,38 @@
+def getBaseVersion() {
+    if(isReleaseBuild()) {
+        return getVersion()
+    } else {
+        return version.toString().replace('-SNAPSHOT', '')
+    }
+}
+
+def isReleaseBuild() {
+    return getVersion().contains('SNAPSHOT') == false
+}
+
+task printClasspath {
+    doLast {
+        sourceSets.main.compileClasspath.each { println it }
+    }
+}
+
+compileGroovy {
+    groovyOptions.forkOptions.jvmArgs = ['-noverify']
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+test {
+    jvmArgs '-noverify'
+    useJUnit {}
+}
+
+ext {
+    isReleaseBuild = this.&isReleaseBuild
+    getBaseVersion = this.&getBaseVersion
+}
