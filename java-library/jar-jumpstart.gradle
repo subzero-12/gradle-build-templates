@@ -8,7 +8,6 @@ apply plugin: 'maven'
 apply plugin: 'groovy'
 apply plugin: 'java-library'
 apply plugin: 'io.freefair.lombok'
-apply plugin: 'org.sonarqube'
 
 apply from: "${gradle_templates_source}/common-utils-tasks.gradle"
 apply from: "${gradle_templates_source}/git-common-functions.gradle"
