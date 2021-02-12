@@ -34,7 +34,6 @@ task integrationTest(type: Test) {
 }
 
 dependencies {
-    integrationTestImplementation group: 'org.springframework.boot',     name: 'spring-boot-starter-test'
     integrationTestImplementation group: 'org.objenesis',                name: 'objenesis',     version: "${objenesis_version}"
     integrationTestImplementation group: 'org.hamcrest',                 name: 'hamcrest-all',  version: "${hamcrest_all_version}"
     integrationTestImplementation group: 'org.assertj',                  name: 'assertj-core',  version: "${assertj_version}"
