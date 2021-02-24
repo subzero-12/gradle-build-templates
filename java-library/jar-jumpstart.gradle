@@ -1,4 +1,5 @@
 def gradle_templates_source = project.properties['gradleTemplatesSource'] ?: "https://raw.githubusercontent.com/subzero-12/gradle-build-templates/master/gradle-common"
+def immutables_version = project.properties['immutablesVersion'] ?: "2.8.8"
 
 apply plugin: 'java'
 apply plugin: 'groovy'
@@ -35,4 +36,9 @@ jar {
                 'Source-Compatibility': sourceCompatibility,
                 'Target-Compatibility': targetCompatibility
     }
+}
+
+dependencies {
+    annotationProcessor     group: 'org.immutables', name: 'value', version: "${immutables_version}"
+    compileOnly             group: 'org.immutables', name: 'value-annotations', version: "${immutables_version}"
 }
